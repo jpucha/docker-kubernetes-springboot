@@ -52,6 +52,7 @@ public class CursoServiceImpl implements CursoService{
      * @param id
      */
     @Override
+    @Transactional
     public void eliminarCursoUsuarioPorId(Long id) {
         repository.eliminarCursoUsuarioPorId(id);
     }
