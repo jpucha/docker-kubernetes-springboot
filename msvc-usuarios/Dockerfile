@@ -1,25 +1,34 @@
+ARG MSVC_NAME=msvc-usuarios
+
 FROM adoptopenjdk/openjdk11:jdk-11.0.11_9-alpine-slim as builder
+
+ARG MSVC_NAME
 
 WORKDIR /app/msvc-usuarios
 
 COPY ./pom.xml /app
-COPY ./msvc-usuarios/.mvn ./.mvn
-COPY ./msvc-usuarios/mvnw .
-COPY ./msvc-usuarios/pom.xml .
+COPY ./$MSVC_NAME/.mvn ./.mvn
+COPY ./$MSVC_NAME/mvnw .
+COPY ./$MSVC_NAME/pom.xml .
 
 RUN ./mvnw clean package -Dmaven.test.skip -Dmaven.main.skip -Dspring-boot.repackage.skip && rm -r ./target/
 #RUN ./mvnw dependency:go-offline
 
-COPY ./msvc-usuarios/src ./src
+COPY ./$MSVC_NAME/src ./src
 
 RUN ./mvnw clean package -DskipTests
 
 FROM adoptopenjdk/openjdk11:jdk-11.0.11_9-alpine-slim
 
+ARG MSVC_NAME
+
 WORKDIR /app
 RUN mkdir ./logs
-COPY --from=builder /app/msvc-usuarios/target/msvc-usuarios-0.0.1-SNAPSHOT.jar .
-
-EXPOSE 8001
+ARG MSVC_NAME=msvc-usuarios
+ARG TARGET_FOLDER=/app/$MSVC_NAME/target
+COPY --from=builder $TARGET_FOLDER/msvc-usuarios-0.0.1-SNAPSHOT.jar .
+ARG PORT_APP=8001
+ENV PORT $PORT_APP
+EXPOSE $PORT
 
 CMD ["java","-jar","msvc-usuarios-0.0.1-SNAPSHOT.jar"]
